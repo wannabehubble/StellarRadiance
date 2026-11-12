@@ -11,8 +11,8 @@ StellarRadiance imitates light scattering from optics and/or atmosphere by blurr
 ## Features
 
 - Two modes:
-  - **Stellar**: glow around stars.
-  - **Non-Stellar**: soft bloom on nebulae and galaxies.
+  - **Stellar**: glow on stars.
+  - **Non-Stellar**: glow on nebulae and galaxies.
 
   Each mode has its own settings and presets.
 - **Built-in star removal.** Run the script on a combined image (stars and background together) and it removes the stars with StarNet2 or StarXTerminator. It then glows the right layer and recombines the two.
