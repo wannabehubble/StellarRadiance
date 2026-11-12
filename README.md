@@ -46,6 +46,8 @@ StellarRadiance imitates light scattering from optics and/or atmosphere by blurr
 
 To try it without installing, open the file in **Script > Script Editor** and press **F9** to run it.
 
+<img width="1583" height="1200" alt="4" src="https://github.com/user-attachments/assets/f724125a-6a49-46fe-b3c3-41a4fcc27400" />
+
 ## Quick start
 
 1. Open a **stretched (non-linear)** image and make sure it is the active window.
