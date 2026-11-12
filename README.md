@@ -2,7 +2,7 @@
 
 By **Zachary Eichelberger**
 
-A PixInsight script that adds a natural-looking glow to stars, or a soft bloom to nebulae and galaxies, using iterative Gaussian blur passes.
+A PixInsight script that adds a natural-looking glow to stars, or to nebulae and galaxies, using iterative Gaussian blur passes.
 
 Light scattered by optics and the atmosphere spreads out from bright sources: strongly near the source, faintly far from it. StellarRadiance imitates this by blurring the image in a series of passes. Each pass is wider than the last and weaker than the last. The passes are added together into a glow layer, which is then screened back onto the image.
 
