@@ -6,6 +6,8 @@ A PixInsight script that adds a natural-looking glow to stars, or to nebulae and
 
 StellarRadiance imitates light scattering from optics and/or atmosphere by blurring the image in a series of Gaussian blur passes. Each pass is wider than the last and weaker than the last. The passes are added together into a glow layer, which is then screened back onto the image.
 
+<img width="1583" height="1200" alt="5" src="https://github.com/user-attachments/assets/7d26f5f2-93e2-4d7e-84ea-b652c96d7d5c" />
+
 ## Features
 
 - Two modes:
