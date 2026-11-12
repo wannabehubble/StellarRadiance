@@ -82,7 +82,7 @@ To try it without installing, open the file in **Script > Script Editor** and pr
    - In **Stellar** mode, the glowed stars are screened onto the starless image.
    - In **Non-Stellar** mode, the stars are screened, unchanged, onto the glowed starless image.
 
-<img width="1583" height="1200" alt="6" src="https://github.com/user-attachments/assets/2a31a2bc-d7e5-47d2-b715-3c5f70978f1a" />
+<img width="1583" height="1200" alt="7" src="https://github.com/user-attachments/assets/2f344403-e350-4d80-ac4a-88488cd2daba" />
 
 ## Parameters
 
