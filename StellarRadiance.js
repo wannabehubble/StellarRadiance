@@ -57,6 +57,8 @@
 // v2.9: Input options renamed (Stars-only / Starless / Combined); the preview
 //       grows with the dialog window.
 // v2.9.1: author credit and a tidier info box.
+// v2.9.2: images with an alpha (transparency) channel, e.g. many PNGs, no
+//         longer give a blank preview or result; the alpha channel is ignored.
 //
 // Use on a NON-LINEAR (stretched) image: a stars-only image (Stellar mode), a
 // starless image (Non-Stellar mode), or a combined image with stars (either mode).
@@ -76,7 +78,7 @@
 #include <pjsr/DataType.jsh>
 
 #define TITLE   "StellarRadiance"
-#define VERSION "2.9.1"
+#define VERSION "2.9.2"
 #define AUTHOR  "Zachary Eichelberger"
 #define SETTINGS_KEY "StarGlow"   // kept from the old name so saved settings carry over
 
@@ -301,14 +303,30 @@ function effectiveSigma()
    return Math.sqrt( v );
 }
 
-// Create a hidden 32-bit float window that is a copy of srcImage.
+// Colour channels only (3 for RGB, 1 for mono). Alpha (transparency)
+// channels, common in PNG and TIFF files, are left out: processing them
+// would make the glow layer transparent and the preview look blank.
+function nominalChannels( img )
+{
+   return img.isColor ? 3 : 1;
+}
+
+// Copy of the colour channels of srcImage (optionally a rectangle of it).
+function copyNominal( dstImage, srcImage, rect )
+{
+   var r = ( rect != undefined ) ? rect : new Rect( 0, 0, srcImage.width, srcImage.height );
+   dstImage.assign( srcImage, r, 0, nominalChannels( srcImage ) - 1 );
+}
+
+// Create a hidden 32-bit float window that is a copy of srcImage
+// (colour channels only, never alpha).
 function makeWindowLike( srcImage, id )
 {
    var w = new ImageWindow( srcImage.width, srcImage.height,
-                            srcImage.numberOfChannels,
+                            nominalChannels( srcImage ),
                             32, true, srcImage.isColor, id );
    w.mainView.beginProcess( UndoFlag_NoSwapFile );
-   w.mainView.image.assign( srcImage );
+   copyNominal( w.mainView.image, srcImage );
    w.mainView.endProcess();
    return w;
 }
@@ -1489,7 +1507,7 @@ function StellarRadianceDialog( srcWindow )
       if ( UI.inputMode == 1 && ( STARS_CACHE == null || STARS_CACHE.tool != UI.tool ) && !allowRemoval )
       {
          var orig = new Image;
-         orig.assign( img, new Rect( x0, y0, x0 + cw, y0 + ch ) );
+         copyNominal( orig, img, new Rect( x0, y0, x0 + cw, y0 + ch ) );
          self.beforeBmp = orig.render();
          orig.free();
          self.afterBmp = self.beforeBmp;
@@ -1526,20 +1544,20 @@ function StellarRadianceDialog( srcWindow )
          var padRect   = new Rect( px0, py0, px1, py1 );
          var starsImg  = full ? glowLayer().mainView.image : img;
 
-         crop = new ImageWindow( px1 - px0, py1 - py0, img.numberOfChannels,
+         crop = new ImageWindow( px1 - px0, py1 - py0, nominalChannels( img ),
                                  32, true, img.isColor, "StellarRadiance_pvsrc" );
          crop.mainView.beginProcess( UndoFlag_NoSwapFile );
-         crop.mainView.image.assign( starsImg, padRect );
+         copyNominal( crop.mainView.image, starsImg, padRect );
          crop.mainView.endProcess();
 
          out = buildGlow( crop.mainView.image, "StellarRadiance_pvres", "StellarRadiance_pvglow", false, false );
 
          if ( full )
          {
-            cropSL = new ImageWindow( px1 - px0, py1 - py0, img.numberOfChannels,
+            cropSL = new ImageWindow( px1 - px0, py1 - py0, nominalChannels( img ),
                                       32, true, img.isColor, "StellarRadiance_pvsl" );
             cropSL.mainView.beginProcess( UndoFlag_NoSwapFile );
-            cropSL.mainView.image.assign( otherLayer().mainView.image, padRect );
+            copyNominal( cropSL.mainView.image, otherLayer().mainView.image, padRect );
             cropSL.mainView.endProcess();
             recombine( out.result.mainView, cropSL.mainView.id );
          }
@@ -1552,7 +1570,7 @@ function StellarRadianceDialog( srcWindow )
          after.free();
 
          var before = new Image;
-         before.assign( img, new Rect( x0, y0, x0 + cw, y0 + ch ) );
+         copyNominal( before, img, new Rect( x0, y0, x0 + cw, y0 + ch ) );
          self.beforeBmp = before.render();
          before.free();
 
