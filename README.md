@@ -104,46 +104,6 @@ Parameters marked *(advanced)* only appear when **Show advanced settings** is ti
 | Highlight rolloff | None / Exponential / Smooth | How the glow is compressed near white. **Smooth** gives the most natural falloff at high strengths. |
 | Keep glow layer as a separate image | on/off | Also opens the glow layer by itself as a separate image, so you can blend it manually. |
 
-## Presets
-
-Presets only change the parameters they list. Once you edit any of those parameters, the menu shows **Custom**.
-
-**Stellar** presets set all of the following:
-
-- *Threshold* 0.375
-- *Star size filter* 7
-- *Glow saturation* 1.0
-- *Highlight rolloff* Smooth
-
-They leave your SCNR, Highlight protection and Mask feather settings alone.
-
-| Preset | Passes | First sigma | Growth | Decay | Strength |
-|---|---|---|---|---|---|
-| Light | 6 | 12.0 | 3.0 | 1.0 | 2 |
-| Moderate | 6 | 12.0 | 3.0 | 1.0 | 8 |
-| Intense | 6 | 12.0 | 3.0 | 1.0 | 16 |
-| Extreme | 12 | 6.0 | 1.5 | 1.0 | 30 |
-
-**Non-Stellar** presets all share these settings:
-
-- 6 passes
-- *First pass sigma* 15.0
-- *Sigma growth factor* 3.0
-- *Weight decay* 0.75
-- *Threshold* 0.065
-- *Glow saturation* 1.0
-- *Highlight protection* 0.50
-- *Mask feather* 25
-- *Highlight rolloff* Smooth
-
-They differ only in strength:
-
-| Preset | Strength |
-|---|---|
-| Natural - Light | 0.30 |
-| Natural - Moderate | 0.60 |
-| Natural - Intense | 0.90 |
-
 ## Preview controls
 
 - **Live update:** re-renders the preview automatically, shortly after a setting changes.
