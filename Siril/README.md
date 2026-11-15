@@ -44,6 +44,17 @@ Star removal can be slow, so it never runs on its own. The preview shows your or
 | **StarXTerminator (RC-Astro)** | Runs RC-Astro's `rc-astro` command-line tool in a private temporary folder, which is deleted afterwards. The script finds `rc-astro` automatically. If it doesn't, click **Locate rc-astro...** to point to it. |
 | **Starless image file** | Uses a starless version of this image that you made elsewhere. It must be the same size. Click **Choose file...** to pick it. |
 
+## Colour controls (Stellar mode)
+
+Two sliders clean up colour casts in Stellar mode. Both work on colour images only, and 0 turns them off.
+
+| Slider | What it does |
+|---|---|
+| **SCNR** | Removes a green cast from the stars and their glow (average neutral, lightness preserved). The starless background is not affected. |
+| **Inverse SCNR** | Removes a magenta or purple cast from the **glow only**, such as fringing from chromatic aberration or some filters. The glow is inverted, SCNR removes green (which is magenta in the original), and it is inverted back. The stars themselves are not changed. |
+
+You can use both at once: **SCNR** for green stars, **Inverse SCNR** for purple halos.
+
 ## Troubleshooting
 
 | Problem | Fix |
@@ -51,6 +62,8 @@ Star removal can be slow, so it never runs on its own. The preview shows your or
 | The preview is black or very dark | The image is probably still linear. Stretch it first (see Quick start). |
 | The preview only shows the original image | You're using the Combined input. Press **Preview** to run star removal. |
 | "StarNet isn't available" or "starnet2 failed" | Install the StarNet2 command-line tool (2.5 or later) from starnetastro.com, or click **Locate starnet2...**. Or choose another star removal option. |
+| Purple or magenta halos around stars | Raise **Inverse SCNR** (Stellar mode). |
+| A green tint around stars | Raise **SCNR** (Stellar mode). |
 | "rc-astro not found" | Install the RC-Astro command-line tool and activate StarXTerminator, or click **Locate rc-astro...**. |
 | "The starless image is … but this image is …" | The starless file must be the same size as the loaded image. |
 | The window doesn't open | Check Siril's console. On the first run, PyQt6 and scipy need to install, which needs an internet connection. |
