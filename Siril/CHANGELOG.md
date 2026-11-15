@@ -4,6 +4,17 @@ All notable changes to the Siril version of StellarRadiance are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 For the PixInsight version, see [PixInsight/CHANGELOG.md](../PixInsight/CHANGELOG.md).
 
+## [1.7] - 2026-11-14
+
+### Changed
+- **StarNet2** now runs the stand-alone `starnet2` command-line tool (StarNet 2.5 or later,
+  from [starnetastro.com](https://www.starnetastro.com/)) directly, in a private temporary
+  folder that is deleted afterwards. This works with newer Siril versions, where the built-in
+  `starnet` command was replaced by a script. The script finds `starnet2` automatically, or
+  you can point to it with **Locate starnet2...**.
+- If `starnet2` isn't installed, Siril's older built-in StarNet command is used where it still
+  exists (Siril 1.4 with older StarNet versions).
+
 ## [1.6] - 2026-11-13
 
 ### Added

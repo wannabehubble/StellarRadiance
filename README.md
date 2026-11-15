@@ -14,8 +14,8 @@ StellarRadiance is available for two astrophotography programs. Both use the sam
 
 | You use | Download | Version | Instructions |
 |---|---|---|---|
-| **PixInsight** | [`PixInsight/StellarRadiance.js`](PixInsight/StellarRadiance.js) | 2.9.2 | [PixInsight README](PixInsight/README.md) |
-| **Siril** | [`Siril/StellarRadiance.py`](Siril/StellarRadiance.py) | 1.6 | [Siril README](Siril/README.md) |
+| **PixInsight** | [`PixInsight/StellarRadiance.js`](PixInsight/StellarRadiance.js) | 2.10 | [PixInsight README](PixInsight/README.md) |
+| **Siril** | [`Siril/StellarRadiance.py`](Siril/StellarRadiance.py) | 1.7 | [Siril README](Siril/README.md) |
 
 Each version has its own changelog: [PixInsight](PixInsight/CHANGELOG.md), [Siril](Siril/CHANGELOG.md).
 
@@ -31,7 +31,7 @@ Each version has its own changelog: [PixInsight](PixInsight/CHANGELOG.md), [Siri
 - **Presets** to get started quickly:
   - Stellar: Light, Moderate, Intense, Extreme.
   - Non-Stellar: Natural - Light, Natural - Moderate, Natural - Intense.
-- **Glow controls:** highlight protection, smooth highlight rolloff, glow saturation and SCNR.
+- **Glow controls:** highlight protection, smooth highlight rolloff, glow saturation and SCNR. The PixInsight version also has **Inverse SCNR**, which removes magenta fringing from the glow.
 
 Both versions work on **stretched (non-linear)** images.
 

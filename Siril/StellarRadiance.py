@@ -18,8 +18,10 @@
 #                or a combined image (stars are screened back on, unglowed).
 #
 # Combined input needs a starless version of the image, from one of:
-#   - StarNet, run through Siril (StarNet CLI must be set up in Siril's
-#     Preferences),
+#   - StarNet2: the stand-alone starnet2 command-line tool (StarNet 2.5 or
+#     later, from starnetastro.com) is called directly. If it isn't installed,
+#     Siril's older built-in starnet command is used where it still exists
+#     (Siril 1.4 with older StarNet versions),
 #   - StarXTerminator, through RC-Astro's stand-alone command-line tool
 #     (rc-astro, from rc-astro.com, with an activated StarXTerminator
 #     license), or
@@ -39,6 +41,9 @@
 # into Siril's Python environment on first run.
 #
 # Siril edition history
+# 1.7   StarNet now calls the starnet2 command-line tool directly, so it works
+#       with newer Siril versions where the built-in starnet command was
+#       replaced by the StarNet.py script. Falls back to the old command.
 # 1.6   StarXTerminator (RC-Astro CLI) added as a star removal tool.
 # 1.5   Siril release; matches PixInsight v2.9.2 (same algorithm, presets
 #       and settings). The whole glow cascade is evaluated in the Fourier
@@ -70,7 +75,7 @@ from scipy import fft as sfft
 from PyQt6 import QtCore, QtGui, QtWidgets
 
 TITLE = "StellarRadiance"
-VERSION = "1.6"
+VERSION = "1.7"
 AUTHOR = "Zachary Eichelberger"
 EDITION = "Siril"
 
@@ -140,14 +145,14 @@ for _m in MODES:
 
 ROLLOFF_NAMES = ["None (hard clip)", "Exponential", "Smooth (long shoulder)"]
 INPUT_NAME0 = ["Stars-only", "Starless"]     # input item 0 label per mode
-TOOL_NAMES = ["StarNet (run in Siril)", "StarXTerminator (RC-Astro)", "Starless image file"]
+TOOL_NAMES = ["StarNet2", "StarXTerminator (RC-Astro)", "Starless image file"]
 TOOL_KEYS = ["starnet", "sxt", "file"]
 TOOL_STARNET, TOOL_SXT, TOOL_FILE = 0, 1, 2
 REGION_NAMES = ["Whole image (1/3 res)", "Crop 1:1 (drag to pan)"]
 PREVIEW_DOWNSAMPLE = 3
 MAX_SIGMA = 250.0
 
-UI = dict(mode=0, inputMode=0, tool=0, starlessFile="", rcAstroPath="", liveUpdate=True, region=0)
+UI = dict(mode=0, inputMode=0, tool=0, starlessFile="", rcAstroPath="", starnetPath="", liveUpdate=True, region=0)
 
 
 # ----------------------------------------------------------------------------
@@ -194,6 +199,8 @@ def load_settings(siril):
     elif UI["tool"] == 1:
         UI["tool"] = TOOL_FILE
     UI["tool"] = max(0, min(len(TOOL_NAMES) - 1, UI["tool"]))
+    if isinstance(data.get("starnetPath"), str):
+        UI["starnetPath"] = data["starnetPath"]
     if isinstance(data.get("rcAstroPath"), str):
         UI["rcAstroPath"] = data["rcAstroPath"]
     UI["region"] = max(0, min(1, UI["region"]))
@@ -451,6 +458,38 @@ def looks_linear(img):
     brightness is tiny. Siril's AutoStretch view can hide this."""
     step = max(1, int(math.sqrt(img.shape[1] * img.shape[2] / 250000.0)))
     return float(np.median(luminance(img[:, ::step, ::step]))) < 0.02
+
+
+def find_starnet2():
+    """Path to the stand-alone StarNet2 command-line tool, or None."""
+    p = UI.get("starnetPath", "")
+    if p and os.path.isfile(p):
+        return p
+    for name in ("starnet2", "starnet2.exe"):
+        w = shutil.which(name)
+        if w:
+            return w
+    pats = []
+    if sys.platform.startswith("win"):
+        for root in (os.environ.get("ProgramFiles", r"C:\Program Files"),
+                     os.environ.get("ProgramFiles(x86)", ""),
+                     os.environ.get("LOCALAPPDATA", "")):
+            if root:
+                pats += [os.path.join(root, "StarNet2", "bin", "starnet2.exe"),
+                         os.path.join(root, "StarNet*", "bin", "starnet2.exe"),
+                         os.path.join(root, "StarNet*", "starnet2.exe"),
+                         os.path.join(root, "Programs", "StarNet*", "bin", "starnet2.exe")]
+    elif sys.platform == "darwin":
+        pats += ["/usr/local/bin/starnet2", "/opt/homebrew/bin/starnet2",
+                 "/Applications/StarNet*/starnet2", "/Applications/StarNet*/bin/starnet2"]
+    else:
+        pats += ["/usr/bin/starnet2", "/usr/local/bin/starnet2", "/opt/starnet2/starnet2",
+                 "/opt/StarNet2/bin/starnet2", os.path.expanduser("~/.local/bin/starnet2")]
+    for pat in pats:
+        for f in glob.glob(pat):
+            if os.path.isfile(f):
+                return f
+    return None
 
 
 def find_rc_astro():
@@ -767,8 +806,8 @@ class StellarRadianceWindow(QtWidgets.QWidget):
         self.tool_combo.addItems(TOOL_NAMES)
         self.tool_combo.setCurrentIndex(UI["tool"])
         self.tool_combo.setToolTip(
-            "StarNet: runs Siril's StarNet integration once (StarNet CLI must be set up in Siril's "
-            "Preferences).\nStarXTerminator: runs RC-Astro's stand-alone command-line tool (rc-astro), "
+            "StarNet2: runs the starnet2 command-line tool (StarNet 2.5 or later). If it isn't installed, "
+            "Siril's older built-in StarNet is used where available.\nStarXTerminator: runs RC-Astro's stand-alone command-line tool (rc-astro), "
             "which needs an activated StarXTerminator license.\nStarless image file: use a starless "
             "version of this image that you made elsewhere. It must be the same size.")
         self.tool_combo.currentIndexChanged.connect(self.on_tool)
@@ -1017,11 +1056,19 @@ class StellarRadianceWindow(QtWidgets.QWidget):
         full = UI["inputMode"] == 1
         self.tool_combo.setEnabled(full)
         self.tool_label.setEnabled(full)
-        show = full and UI["tool"] in (TOOL_SXT, TOOL_FILE)
+        show = full
         self.file_button.setVisible(show)
         self.file_label.setVisible(show)
         self.file_spacer.setVisible(show)
-        if UI["tool"] == TOOL_SXT:
+        if UI["tool"] == TOOL_STARNET:
+            exe = find_starnet2()
+            self.file_button.setText("Locate starnet2...")
+            self.file_button.setToolTip("Point to the starnet2 program if it isn't found automatically.")
+            self.file_label.setText(os.path.basename(exe) + " found" if exe else
+                                    "<i>starnet2 not found - Siril's built-in StarNet will be tried</i>")
+            self.file_label.setToolTip(exe or "Install the StarNet2 command-line tool (2.5 or later) from "
+                                              "starnetastro.com, or click Locate starnet2... to point to it.")
+        elif UI["tool"] == TOOL_SXT:
             exe = find_rc_astro()
             self.file_button.setText("Locate rc-astro...")
             self.file_button.setToolTip("Point to the rc-astro program if it isn't found automatically.")
@@ -1066,6 +1113,16 @@ class StellarRadianceWindow(QtWidgets.QWidget):
         self.schedule_preview()
 
     def on_choose_file(self):
+        if UI["tool"] == TOOL_STARNET:
+            start = os.path.dirname(UI["starnetPath"] or find_starnet2() or "")
+            f, _ = QtWidgets.QFileDialog.getOpenFileName(
+                self, "Locate the starnet2 program", start,
+                "starnet2 (starnet2 starnet2.exe);;All files (*)")
+            if f:
+                UI["starnetPath"] = f
+                self.update_input_controls()
+                self.schedule_preview()
+            return
         if UI["tool"] == TOOL_SXT:
             start = os.path.dirname(UI["rcAstroPath"] or find_rc_astro() or "")
             f, _ = QtWidgets.QFileDialog.getOpenFileName(
@@ -1151,6 +1208,53 @@ class StellarRadianceWindow(QtWidgets.QWidget):
         return self.stars_cache is not None and self.stars_cache["key"] == self.removal_key()
 
     def run_starnet(self):
+        """StarNet2. Uses the stand-alone starnet2 tool when it's installed;
+        otherwise Siril's older built-in starnet command."""
+        exe = find_starnet2()
+        if exe:
+            return self.run_starnet_cli(exe)
+        self.siril.log("StellarRadiance: starnet2 not found, trying Siril's built-in StarNet...")
+        try:
+            return self.run_starnet_siril()
+        except Exception as e:
+            raise RuntimeError(
+                "StarNet isn't available (%s).\nInstall the StarNet2 command-line tool (version 2.5 or "
+                "later) from starnetastro.com, or click 'Locate starnet2...' if it's installed somewhere "
+                "unusual." % e)
+
+    def run_starnet_cli(self, exe):
+        """Runs starnet2 in a private temp folder: the image is written there,
+        starnet2 writes the starless version next to it, it's read back and
+        the folder is deleted. Siril's loaded image is never touched."""
+        tmp = tempfile.mkdtemp(prefix="StellarRadiance_starnet_")
+        try:
+            inp = os.path.join(tmp, "sr_input.fit")
+            self.siril.save_image_file(from_float(self.orig, np.float32, self.raw_ndim), filename=inp)
+            if not os.path.isfile(inp):
+                found = [f for f in glob.glob(os.path.join(tmp, "sr_input*")) if os.path.isfile(f)]
+                if not found:
+                    raise RuntimeError("Could not write the temporary image for StarNet.")
+                inp = found[0]
+            out = os.path.join(tmp, "sr_starless.fit")
+            self.siril.log("StellarRadiance: removing stars with StarNet2 (%s)..." % exe)
+            lines = run_process([exe, "-i", inp, "-o", out],
+                                lambda s_: self.status_label.setText(
+                                    "Removing stars with StarNet2... %d s" % s_))
+            if not os.path.isfile(out):
+                outs = [f for f in glob.glob(os.path.join(tmp, "sr_starless*")) if os.path.isfile(f)]
+                if not outs:
+                    raise RuntimeError("StarNet2 did not produce a starless image.\n" +
+                                       "\n".join(lines[-10:]))
+                out = outs[0]
+            ff = self.siril.load_image_from_file(out, with_pixels=True)
+            if ff is None or ff.data is None:
+                raise RuntimeError("Siril could not read StarNet2's output.")
+            self.siril.log("StellarRadiance: StarNet2 done.")
+            return to_float(ff.data)
+        finally:
+            shutil.rmtree(tmp, ignore_errors=True)
+
+    def run_starnet_siril(self):
         self.siril.log("StellarRadiance: removing stars with StarNet...")
         try:
             self.siril.update_progress("StellarRadiance: removing stars with StarNet...", -1.0)
