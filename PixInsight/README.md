@@ -15,7 +15,7 @@ StellarRadiance imitates light scattering from optics and/or atmosphere by blurr
   - **Non-Stellar**: glow on nebulae and galaxies.
 
   Each mode has its own settings and presets.
-- **Built-in star removal.** Run the script on a combined image (stars and background together) and it removes the stars with StarNet2 or StarXTerminator. It then glows the right layer and recombines the two.
+- **Built-in star removal.** Run it on a combined image (stars and background together) and it removes the stars from the background once more, then glow is applied to the stars and it recombines the two..
 - **Live preview** with a before/after toggle. You can view the whole frame at 1/3 resolution, drag a 1:1 crop around the image, or follow a preview box you've drawn in PixInsight.
 - **Presets** to get started quickly:
   - Stellar: Light, Moderate, Intense, Extreme.
@@ -30,7 +30,7 @@ StellarRadiance imitates light scattering from optics and/or atmosphere by blurr
 
 ## Requirements
 
-- PixInsight 1.8.9 or later. Older versions will probably work too.
+- PixInsight 1.8.9 or later.
 - To use the **Combined** input, you also need one of these:
   - [StarNet2](https://www.starnetastro.com/)
   - [StarXTerminator](https://www.rc-astro.com/software/sxt/) (commercial)
@@ -83,47 +83,6 @@ To try it without installing, open the file in **Script > Script Editor** and pr
    - In **Non-Stellar** mode, the stars are screened, unchanged, onto the glowed starless image.
 
 <img width="1583" height="1200" alt="7" src="https://github.com/user-attachments/assets/c6cbda29-45d0-4903-91af-df6326997217" />
-
-## Parameters
-
-Parameters marked *(advanced)* only appear when **Show advanced settings** is ticked. The box is unticked each time the dialog opens, to keep it uncluttered. Hidden settings are still used.
-
-| Parameter | Range | Description |
-|---|---|---|
-| Blur passes | 1–12 | Number of blur passes. More passes give a wider, smoother falloff. |
-| First pass sigma *(advanced)* | 0.5–20 px | Width of the first, tightest pass. Larger values suit large-scale objects. |
-| Sigma growth factor *(advanced)* | 1.1–3.0 | How much wider each pass is than the one before. |
-| Weight decay *(advanced)* | 0.3–1.0 | How quickly the outer halos fade. Lower gives a tighter glow; 1.0 weights all passes equally. |
-| Glow strength | 0.05–30 | Overall intensity of the glow. Above about 3 is very bloomy; 10–30 is extreme. |
-| Threshold *(advanced)* | 0–0.98 | **Stellar:** only stars brighter than this glow. **Non-Stellar:** only brightness above this level blooms. |
-| Star size filter *(advanced, Stellar only)* | 0–10 px | Leaves out small stars. 0 = off. |
-| Glow saturation | 0–3 | Colour of the glow only. 0 = white, 1 = natural, above 1 = more colourful. Colour images only. |
-| Highlight protection | 0–1 | Holds the glow back from areas that are already bright. 0 = off; 1 = no glow on pure white. |
-| Mask feather | 0–50 px | Softens the edges of the highlight-protection mask. |
-| SCNR *(Stellar only)* | 0–1 | Removes green from the stars and their glow. 0 = off. Colour images only. |
-| Inverse SCNR *(Stellar only)* | 0–1 | Removes a magenta/purple cast from the glow only, e.g. fringing from chromatic aberration. The stars themselves are unchanged. 0 = off. Colour images only. |
-| Highlight rolloff | None / Exponential / Smooth | How the glow is compressed near white. **Smooth** gives the most natural falloff at high strengths. |
-| Keep glow layer as a separate image | on/off | Also opens the glow layer by itself as a separate image, so you can blend it manually. |
-
-## Preview controls
-
-- **Live update:** re-renders the preview automatically, shortly after a setting changes.
-- **Show original:** shows the image before the glow, for comparison.
-- **Region:**
-  - **Whole image (1/3 res)** is the default. The full frame is reduced to one third of its resolution, processed, and fitted to the preview box. Pixel-based settings (sigmas, star size filter, mask feather) are scaled to match, so the glow keeps the same size relative to the frame. It's an approximation: small stars are averaged together at this scale, so use the crop to judge fine detail.
-  - **Crop 1:1** gives a full-resolution crop you can drag to pan around the image.
-  - Choosing a PixInsight preview box shows exactly that area. Areas larger than the preview are scaled to fit.
-- **Size:** the minimum preview size (400, 600 or 800 px). Drag the dialog window larger and the preview grows with it.
-- **Center:** moves the 1:1 crop back to the centre of the image.
-- **Preview:** re-renders the preview. With Combined input, it also runs star removal the first time.
-
-The preview runs the same algorithm as the final result. In the crop and preview-box views, the crop is processed with extra margin around it, so the glow near its edges matches the full image.
-
-## Buttons
-
-- **Reset:** puts the current mode's settings back to their defaults (Natural - Light in Non-Stellar mode).
-- **OK:** saves your settings and creates the result.
-- **Cancel:** closes the dialog without changing anything.
 
 ## Tips
 
