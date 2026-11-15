@@ -26,7 +26,7 @@ Each version has its own changelog: [PixInsight](PixInsight/CHANGELOG.md), [Siri
   - **Non-Stellar**: glow on nebulae and galaxies.
 
   Each mode has its own settings and presets.
-- **Built-in star removal.** Run it on a combined image (stars and background together) and it separates the stars, glows the right layer and recombines the two.
+- **Built-in star removal.** Run it on a combined image (stars and background together) and it separates the stars, then glow is applied to the stars and it recombines the two.
 - **Live preview** with a before/after toggle.
 - **Presets** to get started quickly:
   - Stellar: Light, Moderate, Intense, Extreme.
