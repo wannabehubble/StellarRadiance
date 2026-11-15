@@ -4,6 +4,19 @@ All notable changes to the Siril version of StellarRadiance are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 For the PixInsight version, see [PixInsight/CHANGELOG.md](../PixInsight/CHANGELOG.md).
 
+## [1.7] - 2026-11-15
+
+### Changed
+- **StarNet2** now calls the stand-alone `starnet2` command-line tool (StarNet 2.5 or later)
+  directly, in a private temporary folder that is deleted afterwards. This works with newer
+  Siril versions, where the built-in `starnet` command was replaced by the StarNet.py script.
+  The script finds `starnet2` automatically, or you can point to it with **Locate starnet2...**.
+- The loaded image is no longer renamed with a `starless_` prefix when StarNet2 runs.
+
+### Fixed
+- If `starnet2` isn't installed, the script falls back to Siril's older built-in `starnet`
+  command (Siril 1.4 with older StarNet versions) and shows a clear error if neither is available.
+
 ## [1.6] - 2026-11-13
 
 ### Added

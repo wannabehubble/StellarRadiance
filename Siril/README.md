@@ -7,7 +7,7 @@ A Siril port of the [PixInsight script StellarRadiance](../PixInsight/README.md)
 - **Siril 1.4 or later**, with Python scripting.
 - The script installs **PyQt6** and **scipy** into Siril's Python environment the first time it runs. This needs an internet connection and takes a minute.
 - To use the **Combined** input, you also need one of these:
-  - **StarNet**, set up in Siril (*Preferences → Miscellaneous*: the path to the StarNet command-line tool).
+  - **StarNet2** 2.5 or later: the stand-alone `starnet2` command-line tool from [starnetastro.com](https://starnetastro.com/). Older StarNet versions still work in Siril 1.4 through Siril's built-in StarNet (set up under *Preferences → Miscellaneous*).
   - **StarXTerminator**, through RC-Astro's stand-alone command-line tool `rc-astro` ([rc-astro.com](https://www.rc-astro.com/)), with an activated StarXTerminator license.
   - A starless version of your image that you made elsewhere, saved as a file.
 
@@ -40,7 +40,7 @@ Star removal can be slow, so it never runs on its own. The preview shows your or
 
 | Option | How it works |
 |---|---|
-| **StarNet (run in Siril)** | Runs Siril's built-in StarNet integration. StarNet's own files are written to a temporary folder (or, if that isn't possible, deleted afterwards), so nothing is left in your working folder. Afterwards Siril shows the image name with a `starless_` prefix, even though the script restores your pixels. Use **Save As** with your own file name. |
+| **StarNet2** | Runs the `starnet2` command-line tool in a private temporary folder, which is deleted afterwards. The script finds `starnet2` automatically. If it doesn't, click **Locate starnet2...** to point to it. This works with every Siril version, including newer ones where Siril's built-in `starnet` command was replaced by the StarNet.py script.<br><br>If `starnet2` isn't installed, the script falls back to Siril's older built-in StarNet (Siril 1.4 only). In that case Siril shows the image name with a `starless_` prefix afterwards, even though the script restores your pixels, so use **Save As** with your own file name. |
 | **StarXTerminator (RC-Astro)** | Runs RC-Astro's `rc-astro` command-line tool in a private temporary folder, which is deleted afterwards. The script finds `rc-astro` automatically. If it doesn't, click **Locate rc-astro...** to point to it. |
 | **Starless image file** | Uses a starless version of this image that you made elsewhere. It must be the same size. Click **Choose file...** to pick it. |
 
@@ -51,7 +51,7 @@ Star removal can be slow, so it never runs on its own. The preview shows your or
 - There is no **Image** menu. Siril works on one loaded image at a time.
 - There are no PixInsight-style preview boxes. The **Region** menu offers **Whole image (1/3 res)** and **Crop 1:1 (drag to pan)**.
 - There is no preview **Size** menu. Resize the window and the preview grows with it.
-- Star removal can also use **StarNet** through Siril, **StarXTerminator** through RC-Astro's command-line tool, or a starless image file.
+- Star removal uses the **StarNet2** or **StarXTerminator** (RC-Astro) command-line tools directly, or a starless image file.
 - 8-bit images (PNG, JPEG, 8-bit TIFF) are supported. The result is written back as 32-bit to avoid banding in the glow.
 - All the blur passes are combined into a single filter for each colour channel. This gives exactly the same result as running the passes one by one, and it's fast even at the large sizes the Extreme preset uses.
 
@@ -70,7 +70,7 @@ Settings are saved for each mode when you click Apply, in `StellarRadiance.json`
 |---|---|
 | The preview is black or very dark | The image is probably still linear. Stretch it first (see Quick start). |
 | The preview only shows the original image | You're using the Combined input. Press **Preview** to run star removal. |
-| "StarNet failed" | Check the StarNet path in Siril's *Preferences → Miscellaneous*, or choose another star removal option. |
+| "starnet2 not found" or "StarNet isn't available" | Install the StarNet2 command-line tool (2.5 or later) from starnetastro.com, or click **Locate starnet2...** to point to it. |
 | "rc-astro not found" | Install the RC-Astro command-line tool and activate StarXTerminator, or click **Locate rc-astro...**. |
 | "The starless image is … but this image is …" | The starless file must be the same size as the loaded image. |
 | The window doesn't open | Check Siril's console. On the first run, PyQt6 and scipy need to install, which needs an internet connection. |
