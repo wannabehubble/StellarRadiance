@@ -41,6 +41,8 @@
 # into Siril's Python environment on first run.
 #
 # Siril edition history
+# 1.8   Inverse SCNR slider (Stellar mode), as in PixInsight v2.10: removes a
+#       magenta / purple cast from the glow only. "SCNR amount" renamed "SCNR".
 # 1.7   StarNet now calls the starnet2 command-line tool directly, so it works
 #       with newer Siril versions where the built-in starnet command was
 #       replaced by the StarNet.py script. Falls back to the old command.
@@ -75,7 +77,7 @@ from scipy import fft as sfft
 from PyQt6 import QtCore, QtGui, QtWidgets
 
 TITLE = "StellarRadiance"
-VERSION = "1.7"
+VERSION = "1.8"
 AUTHOR = "Zachary Eichelberger"
 EDITION = "Siril"
 
@@ -94,6 +96,7 @@ EDITION = "Siril"
 #   rolloff    0 = none (hard clip), 1 = exponential, 2 = smooth
 #   glowSat    glow saturation: 0 = white glow, 1 = natural, >1 = more colour
 #   scnrAmount SCNR green removal on stars + glow, Stellar mode only; 0 = off
+#   invScnr    inverse SCNR on the glow only (removes magenta), Stellar only; 0 = off
 #   hlProtect  highlight protection: 0 = off .. 1 = no glow on pure white
 #   hlFeather  blur (px) applied to the highlight-protection mask
 #   keepGlow   also save the glow layer as its own FITS file
@@ -107,7 +110,7 @@ MODES = [
         "key": "stellar",
         "defaults": dict(passes=6, baseSigma=1.5, growth=1.6, decay=0.70, strength=0.60,
                          threshold=0.05, starSize=0.0, rolloff=2,
-                         glowSat=1.0, scnrAmount=0.0, hlProtect=0.0, hlFeather=5.0,
+                         glowSat=1.0, scnrAmount=0.0, invScnr=0.0, hlProtect=0.0, hlFeather=5.0,
                          keepGlow=False),
         "presets": [
             ("Light",    dict(passes=6, baseSigma=12.0, growth=3.0, decay=1.0, strength=2.0,
@@ -125,7 +128,7 @@ MODES = [
         # Defaults = the "Natural - Light" preset.
         "defaults": dict(passes=6, baseSigma=15.0, growth=3.0, decay=0.75, strength=0.30,
                          threshold=0.065, starSize=0.0, rolloff=2,
-                         glowSat=1.0, scnrAmount=0.0, hlProtect=0.50, hlFeather=25.0,
+                         glowSat=1.0, scnrAmount=0.0, invScnr=0.0, hlProtect=0.50, hlFeather=25.0,
                          keepGlow=False),
         "presets": [
             ("Natural - Light",    dict(passes=6, baseSigma=15.0, growth=3.0, decay=0.75,
@@ -422,6 +425,14 @@ def build_glow(src, P, mode, scale=1.0, want_glow=False, log=None):
             mask = gaussian_blur(mask, P["hlFeather"] / sc)
         glow = (glow * (1.0 - P["hlProtect"] * mask)).astype(np.float32)
         del mask
+
+    # 5c) Inverse SCNR on the glow only (Stellar mode). The glow is inverted,
+    #     SCNR removes green, and it is inverted back. Green in the inverted
+    #     image is magenta in the real one, so this takes the magenta / purple
+    #     cast (typical of chromatic aberration and some filters) out of the
+    #     halos while the stars themselves are untouched.
+    if mode == MODE_STARS and is_color and P.get("invScnr", 0.0) > 0:
+        glow = (1.0 - apply_scnr(1.0 - glow, P["invScnr"])).astype(np.float32)
 
     # 6) Screen the glow onto the layer
     result = np.clip(screen(src, glow), 0.0, 1.0).astype(np.float32)
@@ -874,11 +885,16 @@ class StellarRadianceWindow(QtWidgets.QWidget):
         add_numeric("Mask feather:", 0, 50, 1, "hlFeather",
                     "Softens the highlight-protection mask (blur radius in px). Only used when Highlight "
                     "protection is above 0.")
-        add_numeric("SCNR amount:", 0, 1, 2, "scnrAmount",
+        add_numeric("SCNR:", 0, 1, 2, "scnrAmount",
                     "Removes green cast from the stars and their glow (average neutral, lightness preserved). "
                     "0 = off, 1 = full SCNR. The starless background is not affected. No effect on mono images.")
         self.numerics["glowSat"].setEnabled(self.is_color)
+        add_numeric("Inverse SCNR:", 0, 1, 2, "invScnr",
+                    "Removes a magenta / purple cast from the glow only, such as fringing from chromatic "
+                    "aberration. The glow is inverted, SCNR removes green (magenta in the original), and it "
+                    "is inverted back. The stars themselves are not changed. 0 = off. No effect on mono images.")
         self.numerics["scnrAmount"].setEnabled(self.is_color)
+        self.numerics["invScnr"].setEnabled(self.is_color)
 
         self.rolloff_combo = QtWidgets.QComboBox()
         self.rolloff_combo.addItems(ROLLOFF_NAMES)
@@ -1051,6 +1067,7 @@ class StellarRadianceWindow(QtWidgets.QWidget):
             self.numerics[k].setVisible(adv)
         self.numerics["starSize"].setVisible(adv and stars)
         self.numerics["scnrAmount"].setVisible(stars)
+        self.numerics["invScnr"].setVisible(stars)
 
     def update_input_controls(self):
         full = UI["inputMode"] == 1

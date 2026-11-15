@@ -4,6 +4,17 @@ All notable changes to the Siril version of StellarRadiance are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 For the PixInsight version, see [PixInsight/CHANGELOG.md](../PixInsight/CHANGELOG.md).
 
+## [1.8] - 2026-11-15
+
+### Added
+- **Inverse SCNR** slider (Stellar mode), matching PixInsight version 2.10. It removes a
+  magenta / purple cast from the glow only, such as fringing from chromatic aberration:
+  the glow is inverted, SCNR removes green, and it is inverted back. The stars themselves
+  are not changed.
+
+### Changed
+- The **SCNR amount** slider is now labelled **SCNR**, as in the PixInsight version.
+
 ## [1.7] - 2026-11-14
 
 ### Changed
