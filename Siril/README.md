@@ -1,6 +1,6 @@
 # StellarRadiance for Siril
 
-A Siril port of the [PixInsight script StellarRadiance](../PixInsight/README.md). It adds a natural-looking glow to stars, or a soft bloom to nebulae and galaxies, using iterative Gaussian blur passes. The algorithm, modes and presets match the PixInsight version (2.9.2).
+A Siril port of the [PixInsight script StellarRadiance](../PixInsight/README.md).
 
 ## Requirements
 
@@ -43,26 +43,6 @@ Star removal can be slow, so it never runs on its own. The preview shows your or
 | **StarNet2** | Runs the stand-alone `starnet2` command-line tool in a private temporary folder, which is deleted afterwards. The script finds `starnet2` automatically. If it doesn't, click **Locate starnet2...** to point to it. If `starnet2` isn't installed, Siril's older built-in StarNet is used instead, where available. In that case Siril shows the image name with a `starless_` prefix afterwards, even though the script restores your pixels; use **Save As** with your own file name. |
 | **StarXTerminator (RC-Astro)** | Runs RC-Astro's `rc-astro` command-line tool in a private temporary folder, which is deleted afterwards. The script finds `rc-astro` automatically. If it doesn't, click **Locate rc-astro...** to point to it. |
 | **Starless image file** | Uses a starless version of this image that you made elsewhere. It must be the same size. Click **Choose file...** to pick it. |
-
-## Differences from the PixInsight version
-
-- **Apply** changes the loaded image instead of opening a new window. Siril's Undo reverses it.
-- **Also save the glow layer as a FITS file** saves the glow as `<name>_glowlayer.fit` next to your image, instead of opening it as a separate window.
-- There is no **Image** menu. Siril works on one loaded image at a time.
-- There are no PixInsight-style preview boxes. The **Region** menu offers **Whole image (1/3 res)** and **Crop 1:1 (drag to pan)**.
-- There is no preview **Size** menu. Resize the window and the preview grows with it.
-- Star removal can also use **StarNet2** through its command-line tool, **StarXTerminator** through RC-Astro's command-line tool, or a starless image file.
-- 8-bit images (PNG, JPEG, 8-bit TIFF) are supported. The result is written back as 32-bit to avoid banding in the glow.
-- All the blur passes are combined into a single filter for each colour channel. This gives exactly the same result as running the passes one by one, and it's fast even at the large sizes the Extreme preset uses.
-
-## Parameters and presets
-
-The parameters and their ranges are the same as in the PixInsight version: see its [Parameters](../PixInsight/README.md#parameters) section. The one exception is **Inverse SCNR**, added in PixInsight 2.10, which isn't in the Siril version yet. The presets are the same too:
-
-- **Stellar:** Light, Moderate, Intense, Extreme.
-- **Non-Stellar:** Natural - Light, Natural - Moderate, Natural - Intense.
-
-Settings are saved for each mode when you click Apply, in `StellarRadiance.json` in Siril's configuration folder.
 
 ## Troubleshooting
 
