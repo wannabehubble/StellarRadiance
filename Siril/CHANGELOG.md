@@ -4,6 +4,13 @@ All notable changes to the Siril version of StellarRadiance are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 For the PixInsight version, see [PixInsight/CHANGELOG.md](../PixInsight/CHANGELOG.md).
 
+## [1.8.1] - 2026-11-15
+
+### Fixed
+- "Header must be provided when data is a numpy array" when removing stars with
+  **StarNet2** or **StarXTerminator**, or when saving the glow layer. Siril requires a FITS
+  header whenever a script saves pixel data; the script now supplies one.
+
 ## [1.8] - 2026-11-15
 
 ### Added

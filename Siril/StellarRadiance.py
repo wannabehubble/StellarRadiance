@@ -41,6 +41,9 @@
 # into Siril's Python environment on first run.
 #
 # Siril edition history
+# 1.8.1 Fix: "Header must be provided when data is a numpy array" when using
+#       StarNet2, StarXTerminator or saving the glow layer. Siril requires a
+#       FITS header with the pixel data; a minimal one is now supplied.
 # 1.8   Inverse SCNR slider (Stellar mode), as in PixInsight v2.10: removes a
 #       magenta / purple cast from the glow only. "SCNR amount" renamed "SCNR".
 # 1.7   StarNet now calls the starnet2 command-line tool directly, so it works
@@ -77,7 +80,7 @@ from scipy import fft as sfft
 from PyQt6 import QtCore, QtGui, QtWidgets
 
 TITLE = "StellarRadiance"
-VERSION = "1.8"
+VERSION = "1.8.1"
 AUTHOR = "Zachary Eichelberger"
 EDITION = "Siril"
 
@@ -469,6 +472,20 @@ def looks_linear(img):
     brightness is tiny. Siril's AutoStretch view can hide this."""
     step = max(1, int(math.sqrt(img.shape[1] * img.shape[2] / 250000.0)))
     return float(np.median(luminance(img[:, ::step, ::step]))) < 0.02
+
+
+def minimal_fits_header(data):
+    """Minimal FITS header (80-character cards, one per line) for a float32
+    array shaped (H, W) or (C, H, W)."""
+    def card(k, v):
+        return ("%-8s= %20s" % (k, v)).ljust(80)
+    shape = data.shape
+    cards = [card("SIMPLE", "T"), card("BITPIX", -32), card("NAXIS", len(shape)),
+             card("NAXIS1", shape[-1]), card("NAXIS2", shape[-2])]
+    if len(shape) == 3:
+        cards.append(card("NAXIS3", shape[0]))
+    cards.append("END".ljust(80))
+    return "\n".join(cards)
 
 
 def find_starnet2():
@@ -1246,7 +1263,7 @@ class StellarRadianceWindow(QtWidgets.QWidget):
         tmp = tempfile.mkdtemp(prefix="StellarRadiance_starnet_")
         try:
             inp = os.path.join(tmp, "sr_input.fit")
-            self.siril.save_image_file(from_float(self.orig, np.float32, self.raw_ndim), filename=inp)
+            self.save_fits(from_float(self.orig, np.float32, self.raw_ndim), inp)
             if not os.path.isfile(inp):
                 found = [f for f in glob.glob(os.path.join(tmp, "sr_input*")) if os.path.isfile(f)]
                 if not found:
@@ -1430,7 +1447,7 @@ class StellarRadianceWindow(QtWidgets.QWidget):
         tmp = tempfile.mkdtemp(prefix="StellarRadiance_sxt_")
         try:
             inp = os.path.join(tmp, "sr_input.fit")
-            self.siril.save_image_file(from_float(self.orig, np.float32, self.raw_ndim), filename=inp)
+            self.save_fits(from_float(self.orig, np.float32, self.raw_ndim), inp)
             if not os.path.isfile(inp):
                 found = [f for f in glob.glob(os.path.join(tmp, "sr_input*")) if os.path.isfile(f)]
                 if not found:
@@ -1647,6 +1664,28 @@ class StellarRadianceWindow(QtWidgets.QWidget):
         self.set_busy(False)
         self.close()
 
+    def save_fits(self, data, path):
+        """Write a float32 array to a FITS file through Siril. Siril needs a
+        FITS header string with numpy data: a minimal header describing the
+        array is tried first, then the loaded image's own header."""
+        data = np.ascontiguousarray(data, dtype=np.float32)
+        headers = [minimal_fits_header(data)]
+        try:
+            h = self.siril.get_image_fits_header()
+            if h:
+                headers.append(h)
+        except Exception:
+            pass
+        err = None
+        for h in headers:
+            try:
+                self.siril.save_image_file(data, h, path)
+                if os.path.isfile(path) or glob.glob(os.path.splitext(path)[0] + ".*"):
+                    return
+            except Exception as e:
+                err = e
+        raise RuntimeError("Siril could not write %s (%s)" % (os.path.basename(path), err))
+
     def save_glow_layer(self, glow):
         base = os.path.splitext(os.path.basename(self.filename))[0] if self.filename else "image"
         folder = os.path.dirname(self.filename) if self.filename else os.getcwd()
@@ -1655,7 +1694,7 @@ class StellarRadianceWindow(QtWidgets.QWidget):
         if self.raw_ndim == 2:
             data = data[0]
         try:
-            self.siril.save_image_file(np.ascontiguousarray(data), filename=path)
+            self.save_fits(data, path)
             self.siril.log("  glow layer saved: %s" % path)
         except Exception as e:
             self.siril.log("  could not save glow layer: %s" % e)

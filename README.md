@@ -15,7 +15,7 @@ StellarRadiance is available for two astrophotography programs. Both use the sam
 | You use | Download | Version | Instructions |
 |---|---|---|---|
 | **PixInsight** | [`PixInsight/StellarRadiance.js`](PixInsight/StellarRadiance.js) | 2.10 | [PixInsight README](PixInsight/README.md) |
-| **Siril** | [`Siril/StellarRadiance.py`](Siril/StellarRadiance.py) | 1.8 | [Siril README](Siril/README.md) |
+| **Siril** | [`Siril/StellarRadiance.py`](Siril/StellarRadiance.py) | 1.8.1 | [Siril README](Siril/README.md) |
 
 Each version has its own changelog: [PixInsight](PixInsight/CHANGELOG.md), [Siril](Siril/CHANGELOG.md).
 
