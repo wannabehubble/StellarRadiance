@@ -59,6 +59,8 @@
 // v2.9.1: author credit and a tidier info box.
 // v2.9.2: images with an alpha (transparency) channel, e.g. many PNGs, no
 //         longer give a blank preview or result; the alpha channel is ignored.
+// v2.10: Glow inverse SCNR slider (Stellar mode): removes magenta / purple
+//        fringing from the glow only, e.g. from chromatic aberration.
 //
 // Use on a NON-LINEAR (stretched) image: a stars-only image (Stellar mode), a
 // starless image (Non-Stellar mode), or a combined image with stars (either mode).
@@ -78,7 +80,7 @@
 #include <pjsr/DataType.jsh>
 
 #define TITLE   "StellarRadiance"
-#define VERSION "2.9.2"
+#define VERSION "2.10"
 #define AUTHOR  "Zachary Eichelberger"
 #define SETTINGS_KEY "StarGlow"   // kept from the old name so saved settings carry over
 
@@ -97,6 +99,7 @@
 //   rolloff    0 = none (hard clip), 1 = exponential, 2 = smooth
 //   glowSat    glow saturation: 0 = white glow, 1 = natural, >1 = more colour
 //   scnrAmount SCNR green removal on stars + glow, Stars mode only; 0 = off
+//   invScnr    inverse SCNR on the glow only (removes magenta), Stars only; 0 = off
 //   hlProtect  highlight protection: 0 = off .. 1 = no glow on pure white
 //   hlFeather  blur (px) applied to the highlight-protection mask
 //   keepGlow   leave the glow layer open as its own image
@@ -111,7 +114,7 @@ var MODES = [
       outSuffix : "_glow",
       defaults  : { passes: 6, baseSigma: 1.5, growth: 1.6, decay: 0.70, strength: 0.60,
                     threshold: 0.05, starSize: 0.0, rolloff: 2,
-                    glowSat: 1.0, scnrAmount: 0.0, hlProtect: 0.0, hlFeather: 5.0,
+                    glowSat: 1.0, scnrAmount: 0.0, invScnr: 0.0, hlProtect: 0.0, hlFeather: 5.0,
                     keepGlow: false },
       presets   : [
          { name: "Light",    values: { passes:  6, baseSigma: 12.0, growth: 3.0, decay: 1.0, strength:  2.0,
@@ -134,7 +137,7 @@ var MODES = [
       // Defaults = the "Natural - Light" preset.
       defaults  : { passes: 6, baseSigma: 15.0, growth: 3.0, decay: 0.75, strength: 0.30,
                     threshold: 0.065, starSize: 0.0, rolloff: 2,
-                    glowSat: 1.0, scnrAmount: 0.0, hlProtect: 0.50, hlFeather: 25.0,
+                    glowSat: 1.0, scnrAmount: 0.0, invScnr: 0.0, hlProtect: 0.50, hlFeather: 25.0,
                     keepGlow: false },
       // User-tuned "Natural" presets. Moderate and Intense add +0.30 and
       // +0.60 glow strength to Light; everything else is identical.
@@ -705,6 +708,18 @@ function buildGlow( srcImage, resultId, glowId, wantGlow, verbose, scale )
          }
       }
 
+      // 5c) Inverse SCNR on the glow only (Stars mode). The glow is inverted,
+      //     SCNR removes green, and it is inverted back. Green in the inverted
+      //     image is magenta in the real one, so this takes the magenta /
+      //     purple cast (typical of chromatic aberration and some filters)
+      //     out of the halos while the stars themselves are untouched.
+      if ( !isObjectMode() && srcImage.isColor && G.invScnr > 0 )
+      {
+         runPixelMath( accum.mainView, "1 - $T" );
+         applySCNR( accum.mainView, G.invScnr );
+         runPixelMath( accum.mainView, "1 - $T" );
+      }
+
       // 6) Screen the glow onto the layer:  1 - (1 - layer)*(1 - glow)
       result = makeWindowLike( srcImage, resultId );
       runPixelMath( result.mainView, "1 - (1 - $T)*(1 - " + accumId + ")" );
@@ -906,6 +921,7 @@ function StellarRadianceDialog( srcWindow )
       self.updateRegionControls();
       self.glowSatControl.enabled    = self.srcImage.isColor;
       self.scnrAmountControl.enabled = self.srcImage.isColor;
+      self.invScnrControl.enabled    = self.srcImage.isColor;
       self.updatePreview();
    };
 
@@ -1108,11 +1124,18 @@ function StellarRadianceDialog( srcWindow )
       "Only used when Highlight protection is above 0." );
 
    // ---- SCNR ------------------------------------------------------------
-   this.scnrAmountControl = addNumeric( "SCNR amount:",         0,   1,   2, "scnrAmount",
+   this.scnrAmountControl = addNumeric( "SCNR:",                0,   1,   2, "scnrAmount",
       "Removes green cast from the stars and their glow (average neutral, " +
       "lightness preserved). 0 = off, 1 = full SCNR. The starless background " +
       "is not affected. Has no effect on mono images." );
    this.scnrAmountControl.enabled = this.srcImage.isColor;
+
+   this.invScnrControl = addNumeric( "Inverse SCNR:",           0,   1,   2, "invScnr",
+      "Removes a magenta / purple cast from the glow only, such as fringing from " +
+      "chromatic aberration. The glow is inverted, SCNR removes green (magenta in the " +
+      "original), and it is inverted back. The stars themselves are not changed. " +
+      "0 = off. Has no effect on mono images." );
+   this.invScnrControl.enabled = this.srcImage.isColor;
 
    // ---- Advanced settings toggle ----------------------------------------
    this.advancedCheck = new CheckBox( this );
@@ -1141,6 +1164,7 @@ function StellarRadianceDialog( srcWindow )
       self.thresholdControl.visible  = UI.showAdvanced;
       self.starSizeControl.visible   = UI.showAdvanced && stars;   // stars only
       self.scnrAmountControl.visible = stars;                      // stars only
+      self.invScnrControl.visible    = stars;                      // stars only
    };
 
    this.rolloffLabel = new Label( this );
@@ -1663,6 +1687,7 @@ function StellarRadianceDialog( srcWindow )
    this.leftSizer.add( this.hlProtectControl );
    this.leftSizer.add( this.hlFeatherControl );
    this.leftSizer.add( this.scnrAmountControl );
+   this.leftSizer.add( this.invScnrControl );
    this.leftSizer.add( this.rolloffSizer );
    this.leftSizer.add( this.checksRow );
    this.leftSizer.add( this.advancedRow );

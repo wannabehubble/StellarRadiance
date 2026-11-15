@@ -3,6 +3,17 @@
 All notable changes to StellarRadiance are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.10] - 2026-11-14
+
+### Added
+- **Inverse SCNR** slider (Stellar mode, below SCNR). Removes a magenta/purple
+  cast from the glow only, such as fringing from chromatic aberration, so halos stay natural.
+  It inverts the glow layer, runs SCNR green removal, and inverts it back. The stars themselves
+  are not changed. Default 0 (off); presets don't change it.
+
+### Changed
+- The **SCNR amount** slider is now labelled **SCNR**. Saved settings are unaffected.
+
 ## [2.9.2] - 2026-11-12
 
 ### Fixed

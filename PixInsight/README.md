@@ -24,7 +24,7 @@ StellarRadiance imitates light scattering from optics and/or atmosphere by blurr
   - **Highlight protection** stops the glow washing out bright cores.
   - **Smooth highlight rolloff** avoids clipping.
   - **Glow saturation** changes the colour of the glow only.
-  - **SCNR** removes green from the stars.
+  - **SCNR** removes green from the stars, and **Inverse SCNR** removes magenta fringing from the glow.
 - **Saved settings.** Your last settings are remembered for each mode.
 - **Non-destructive.** The result is always written to a new image.
 
@@ -100,7 +100,8 @@ Parameters marked *(advanced)* only appear when **Show advanced settings** is ti
 | Glow saturation | 0–3 | Colour of the glow only. 0 = white, 1 = natural, above 1 = more colourful. Colour images only. |
 | Highlight protection | 0–1 | Holds the glow back from areas that are already bright. 0 = off; 1 = no glow on pure white. |
 | Mask feather | 0–50 px | Softens the edges of the highlight-protection mask. |
-| SCNR amount *(Stellar only)* | 0–1 | Removes green from the stars and their glow. 0 = off. Colour images only. |
+| SCNR *(Stellar only)* | 0–1 | Removes green from the stars and their glow. 0 = off. Colour images only. |
+| Inverse SCNR *(Stellar only)* | 0–1 | Removes a magenta/purple cast from the glow only, e.g. fringing from chromatic aberration. The stars themselves are unchanged. 0 = off. Colour images only. |
 | Highlight rolloff | None / Exponential / Smooth | How the glow is compressed near white. **Smooth** gives the most natural falloff at high strengths. |
 | Keep glow layer as a separate image | on/off | Also opens the glow layer by itself as a separate image, so you can blend it manually. |
 
@@ -139,7 +140,8 @@ The preview runs the same algorithm as the final result. In the crop and preview
 | "StarNet2 / StarXTerminator is not installed" | Install the tool, or separate the stars yourself and choose the stars-only or starless input. |
 | The preview only shows the original image | You're using the Combined input. Press **Preview** to run star removal. |
 | The glow looks grey on a colour image | Raise **Glow saturation** above 1.0. |
-| A green tint around stars | Raise **SCNR amount** (Stellar mode). |
+| A green tint around stars | Raise **SCNR** (Stellar mode). |
+| Purple or magenta halos (chromatic aberration) | Raise **Inverse SCNR** (Stellar mode). |
 | Settings don't match a preset | Saved settings take priority. Choose the preset from the menu, or press **Reset**. |
 
 ## Version history
