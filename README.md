@@ -31,7 +31,7 @@ Each version has its own changelog: [PixInsight](PixInsight/CHANGELOG.md), [Siri
 - **Presets** to get started quickly:
   - Stellar: Light, Moderate, Intense, Extreme.
   - Non-Stellar: Natural - Light, Natural - Moderate, Natural - Intense.
-- **Glow controls:** highlight protection, smooth highlight rolloff, glow saturation and SCNR. The PixInsight version also has **Inverse SCNR**, which removes magenta fringing from the glow.
+- **Extra controls:** highlight protection, smooth highlight rolloff, glow saturation, SCNR/Inverse SCNR, which removes magenta fringing from the glow.
 
 Both versions work on **stretched (non-linear)** images.
 
